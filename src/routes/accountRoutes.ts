@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { fastify, FastifyInstance, FastifyRequest } from "fastify";
 import {
   registerUser,
   loginUser,
@@ -7,16 +7,18 @@ import {
 } from "../services/accountManager";
 import { supabase } from "../services/supabaseClient";
 import { prisma } from "../db/prisma";
+import { ApiError } from "../utils/error";
 
 export async function authenticate(request: FastifyRequest) {
   const token = request.headers.authorization?.split(" ")[1];
-  if (!token) throw new Error("Unauthorized");
+
+  if (!token) throw new ApiError(401, "Unauthorized");
 
   const { data, error } = await supabase.auth.getUser(token);
   const { user } = data;
-  if (error || !user) throw new Error("Unauthorized");
+  if (error || !user) throw new ApiError(401, "Unauthorized");
 
-  if (!user.email) throw new Error("Unauthorized");
+  if (!user.email) throw new ApiError(401, "Unauthorized");
 
   const localData = await prisma.user.upsert({
     where: {
@@ -36,6 +38,9 @@ export async function accountRoutes(fastify: FastifyInstance) {
     "/register",
     {
       schema: {
+        description: "User register with ID and Password",
+        tags: ["User"],
+        summary: "Register",
         body: {
           type: "object",
           required: ["email", "password"],
@@ -43,6 +48,17 @@ export async function accountRoutes(fastify: FastifyInstance) {
             email: { type: "string" },
             password: { type: "string" },
           },
+        },
+        response: {
+          200: {
+            description: "Successful Register",
+            type: "object",
+            properties: {
+              token: { type: "string" },
+            },
+          },
+          401: { description: "Unauthorized" },
+          400: { description: "Failed" },
         },
       },
     },

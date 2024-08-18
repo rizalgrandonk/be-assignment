@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { sendMoney, withdrawMoney } from "../services/paymentManager";
 import { authenticate } from "./accountRoutes";
 import { prisma } from "../db/prisma";
+import { ApiError } from "../utils/error";
 
 export async function paymentRoutes(fastify: FastifyInstance) {
   fastify.post(
@@ -34,7 +35,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       });
 
       if (!account) {
-        throw new Error("Account does not exist");
+        throw new ApiError(404, "Account does not exist");
       }
 
       const result = await sendMoney(amount, currency, toAddress, accountId);
@@ -70,7 +71,7 @@ export async function paymentRoutes(fastify: FastifyInstance) {
       });
 
       if (!account) {
-        throw new Error("Account does not exist");
+        throw new ApiError(404, "Account does not exist");
       }
 
       const result = await withdrawMoney(amount, currency, accountId);

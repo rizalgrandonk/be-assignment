@@ -1,6 +1,7 @@
 import { prisma } from "../db/prisma";
 import bcrypt from "bcryptjs";
 import { supabase } from "./supabaseClient";
+import { ApiError } from "../utils/error";
 
 export async function registerUser(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({
@@ -10,7 +11,7 @@ export async function registerUser(email: string, password: string) {
 
   const { user, session } = data;
 
-  if (error) throw new Error(error.message);
+  if (error) throw new ApiError(400, error.message);
 
   const localData = await prisma.user.create({
     data: { email },
@@ -25,7 +26,7 @@ export async function loginUser(email: string, password: string) {
     password,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new ApiError(400, error.message);
 
   return data.session?.access_token;
 }
