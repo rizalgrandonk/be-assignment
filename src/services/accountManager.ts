@@ -36,3 +36,10 @@ export async function getAccounts(userId: number) {
     include: { history: true },
   });
 }
+
+export async function createAccount(userId: number, type: string) {
+  return await prisma.paymentAccount.create({
+    data: { userId, type },
+    include: { history: true },
+  });
+}

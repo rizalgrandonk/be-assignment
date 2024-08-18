@@ -3,6 +3,7 @@ import {
   registerUser,
   loginUser,
   getAccounts,
+  createAccount,
 } from "../services/accountManager";
 import { supabase } from "../services/supabaseClient";
 import { prisma } from "../db/prisma";
@@ -84,4 +85,27 @@ export async function accountRoutes(fastify: FastifyInstance) {
     const accounts = await getAccounts(user.localData.id);
     reply.send(accounts);
   });
+
+  fastify.post(
+    "/accounts/create",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["type"],
+          properties: {
+            type: { type: "string" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { type } = request.body as {
+        type: string;
+      };
+      const user = await authenticate(request);
+      const accounts = await createAccount(user.localData.id, type);
+      reply.send(accounts);
+    }
+  );
 }
