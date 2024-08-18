@@ -8,7 +8,7 @@ export async function registerUser(email: string, password: string) {
     password,
   });
 
-  const { user } = data;
+  const { user, session } = data;
 
   if (error) throw new Error(error.message);
 
@@ -16,7 +16,7 @@ export async function registerUser(email: string, password: string) {
     data: { email },
   });
 
-  return { ...user, localData };
+  return { ...user, accessToken: session?.access_token, localData };
 }
 
 export async function loginUser(email: string, password: string) {

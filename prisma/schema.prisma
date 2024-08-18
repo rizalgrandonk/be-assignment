@@ -25,15 +25,7 @@ model PaymentAccount {
   type     String
   userId   Int
   user     User     @relation(fields: [userId], references: [id])
-  history  PaymentHistory[]
-}
-
-model PaymentHistory {
-  id          Int      @id @default(autoincrement())
-  amount      Float
-  timestamp   DateTime @default(now())
-  accountId   Int
-  account     PaymentAccount @relation(fields: [accountId], references: [id])
+  history  Transaction[]
 }
 
 model Transaction {
@@ -43,4 +35,6 @@ model Transaction {
   currency  String
   status    String
   timestamp DateTime @default(now())
+  accountId   Int
+  account     PaymentAccount @relation(fields: [accountId], references: [id])
 }

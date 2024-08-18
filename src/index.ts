@@ -2,12 +2,12 @@ import "dotenv/config";
 import "./db/prisma";
 import Fastify from "fastify";
 import { accountRoutes } from "./routes/accountRoutes";
-// import { paymentRoutes } from './routes/paymentRoutes';
+import { paymentRoutes } from "./routes/paymentRoutes";
 
 const fastify = Fastify({ logger: true });
 
 fastify.register(accountRoutes);
-// fastify.register(paymentRoutes);
+fastify.register(paymentRoutes);
 
 fastify.listen({ port: 3000 }, (err, address) => {
   if (err) {

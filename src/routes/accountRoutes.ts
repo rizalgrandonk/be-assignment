@@ -7,7 +7,7 @@ import {
 import { supabase } from "../services/supabaseClient";
 import { prisma } from "../db/prisma";
 
-async function authenticate(request: FastifyRequest) {
+export async function authenticate(request: FastifyRequest) {
   const token = request.headers.authorization?.split(" ")[1];
   if (!token) throw new Error("Unauthorized");
 
@@ -31,23 +31,53 @@ async function authenticate(request: FastifyRequest) {
 }
 
 export async function accountRoutes(fastify: FastifyInstance) {
-  fastify.post("/register", async (request, reply) => {
-    const { email, password } = request.body as {
-      email: string;
-      password: string;
-    };
-    const user = await registerUser(email, password);
-    reply.send(user);
-  });
+  fastify.post(
+    "/register",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string" },
+            password: { type: "string" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { email, password } = request.body as {
+        email: string;
+        password: string;
+      };
+      const user = await registerUser(email, password);
+      reply.send(user);
+    }
+  );
 
-  fastify.post("/login", async (request, reply) => {
-    const { email, password } = request.body as {
-      email: string;
-      password: string;
-    };
-    const token = await loginUser(email, password);
-    reply.send({ token });
-  });
+  fastify.post(
+    "/login",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: { type: "string" },
+            password: { type: "string" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { email, password } = request.body as {
+        email: string;
+        password: string;
+      };
+      const token = await loginUser(email, password);
+      reply.send({ token });
+    }
+  );
 
   fastify.get("/accounts", async (request, reply) => {
     const user = await authenticate(request);

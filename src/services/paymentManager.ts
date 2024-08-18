@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db/prisma";
+import cron from "node-cron";
 
 type TransactionCreate = Prisma.Args<
   typeof prisma.transaction,
@@ -31,10 +32,11 @@ async function finishTransaction(transaction: TransactionCreate) {
 export async function sendMoney(
   amount: number,
   currency: string,
-  toAddress: string
+  toAddress: string,
+  accountId: number
 ) {
   const transaction = await prisma.transaction.create({
-    data: { amount, currency, toAddress, status: "pending" },
+    data: { accountId, amount, currency, toAddress, status: "pending" },
   });
 
   finishTransaction(transaction);
@@ -42,10 +44,15 @@ export async function sendMoney(
   return transaction;
 }
 
-export async function withdrawMoney(amount: number, currency: string) {
+export async function withdrawMoney(
+  amount: number,
+  currency: string,
+  accountId: number
+) {
   const transactionData = {
     amount,
     currency,
+    accountId,
     toAddress: "bank",
     status: "pending",
   };
@@ -57,4 +64,47 @@ export async function withdrawMoney(amount: number, currency: string) {
   finishTransaction(transaction);
 
   return transaction;
+}
+
+// Function to process a single recurring payment
+async function processRecurringPayment(
+  amount: number,
+  currency: string,
+  toAddress: string,
+  accountId: number
+) {
+  const transaction = await prisma.transaction.create({
+    data: {
+      amount,
+      toAddress,
+      currency,
+      accountId,
+      status: "pending",
+      timestamp: new Date(),
+    },
+  });
+
+  await finishTransaction(transaction);
+  const transactionId = transaction.id;
+
+  console.log(`Recurring payment processed for transaction ${transactionId}`);
+}
+
+// Function to set up a recurring payment
+export async function setupRecurringPayment(
+  amount: number,
+  currency: string,
+  toAddress: string,
+  accountId: number
+) {
+  const cronExpression = "*/5 * * * *";
+
+  // Schedule the recurring payment
+  cron.schedule(cronExpression, () => {
+    processRecurringPayment(amount, currency, toAddress, accountId);
+  });
+
+  return {
+    message: "success",
+  };
 }
