@@ -38,7 +38,7 @@ export async function accountRoutes(fastify: FastifyInstance) {
     "/register",
     {
       schema: {
-        description: "User register with ID and Password",
+        description: "User register with Email and Password",
         tags: ["User"],
         summary: "Register",
         body: {
@@ -57,8 +57,22 @@ export async function accountRoutes(fastify: FastifyInstance) {
               token: { type: "string" },
             },
           },
-          401: { description: "Unauthorized" },
-          400: { description: "Failed" },
+          401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+          400: {
+            description: "Failed Request",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
         },
       },
     },
@@ -76,12 +90,40 @@ export async function accountRoutes(fastify: FastifyInstance) {
     "/login",
     {
       schema: {
+        description: "User login with Email and Password",
+        tags: ["User"],
+        summary: "Login",
         body: {
           type: "object",
           required: ["email", "password"],
           properties: {
             email: { type: "string" },
             password: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            description: "Successful Login",
+            type: "object",
+            properties: {
+              token: { type: "string" },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+          400: {
+            description: "Failed Request",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
           },
         },
       },
@@ -96,21 +138,135 @@ export async function accountRoutes(fastify: FastifyInstance) {
     }
   );
 
-  fastify.get("/accounts", async (request, reply) => {
-    const user = await authenticate(request);
-    const accounts = await getAccounts(user.localData.id);
-    reply.send(accounts);
-  });
+  fastify.get(
+    "/accounts",
+    {
+      schema: {
+        description: "Get User's Payment Accounts",
+        tags: ["Payment Account"],
+        summary: "Get Payment Accounts",
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        response: {
+          200: {
+            description: "Successful",
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "number" },
+                type: { type: "string" },
+                history: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "number" },
+                      amount: { type: "number" },
+                      timestamp: { type: "string" },
+                      toAddres: { type: "string" },
+                      currency: { type: "string" },
+                      status: { type: "string" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+          400: {
+            description: "Failed Request",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+          404: {
+            description: "Not Found",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticate(request);
+      const accounts = await getAccounts(user.localData.id);
+      reply.send(accounts);
+    }
+  );
 
   fastify.post(
     "/accounts/create",
     {
       schema: {
+        description: "Create User's Payment Accounts",
+        tags: ["Payment Account"],
+        summary: "Create Payment Accounts",
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
         body: {
           type: "object",
           required: ["type"],
           properties: {
             type: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            description: "Successful",
+            type: "object",
+            properties: {
+              id: { type: "number" },
+              type: { type: "string" },
+              history: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number" },
+                    amount: { type: "number" },
+                    timestamp: { type: "string" },
+                    toAddres: { type: "string" },
+                    currency: { type: "string" },
+                    status: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+          400: {
+            description: "Failed Request",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
           },
         },
       },

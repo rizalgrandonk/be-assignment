@@ -9,6 +9,14 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     "/send",
     {
       schema: {
+        description: "Create User's Payment",
+        tags: ["Payment"],
+        summary: "Send",
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
         body: {
           type: "object",
           required: ["amount", "toAddress", "currency", "accountId"],
@@ -17,6 +25,36 @@ export async function paymentRoutes(fastify: FastifyInstance) {
             accountId: { type: "number" },
             toAddress: { type: "string" },
             currency: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            description: "Successful",
+            type: "object",
+            properties: {
+              id: { type: "number" },
+              amount: { type: "number" },
+              timestamp: { type: "string" },
+              toAddres: { type: "string" },
+              currency: { type: "string" },
+              status: { type: "string" },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+          400: {
+            description: "Failed Request",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
           },
         },
       },
@@ -47,6 +85,14 @@ export async function paymentRoutes(fastify: FastifyInstance) {
     "/withdraw",
     {
       schema: {
+        description: "Create User's Payment",
+        tags: ["Payment"],
+        summary: "Withdraw",
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
         body: {
           type: "object",
           required: ["amount", "currency", "accountId"],
@@ -54,6 +100,36 @@ export async function paymentRoutes(fastify: FastifyInstance) {
             amount: { type: "number" },
             accountId: { type: "number" },
             currency: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            description: "Successful",
+            type: "object",
+            properties: {
+              id: { type: "number" },
+              amount: { type: "number" },
+              timestamp: { type: "string" },
+              toAddres: { type: "string" },
+              currency: { type: "string" },
+              status: { type: "string" },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+          400: {
+            description: "Failed Request",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
           },
         },
       },
