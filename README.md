@@ -1,59 +1,103 @@
-# Take home assignment
+# Backend Services for Account and Payment Management
 
+## Overview
 
-## Description:
-Build 2 Backend services which manages user’s accounts and transactions (send/withdraw). 
+This project consists of two backend services: `Account Manager` and `Payment Manager`. These services manage user accounts, transactions, and payment histories, utilizing Node.js with Fastify, PostgreSQL with Prisma ORM, and Supabase for authentication.
 
-In Account Manager service, we have:
-- User: Login with Id/Password
-- Payment Account: One user can have multiple accounts like credit, debit, loan...
-- Payment History: Records of transactions
+## Table of Contents
 
-In Payment Manager service, we have:
-- Transaction: Include basic information like amount, timestamp, toAddress, status...
-- We have a core transaction process function, that will be executed by `/send` or `/withdraw` API:
+- [Tech Stack](#tech-stack)
+- [Setup and Installation](#setup-and-installation)
+- [Database Schema](#database-schema)
+- [Authentication](#authentication)
+- [Transaction Processing](#transaction-processing)
+- [Recurring Payments](#recurring-payments)
+- [Docker and Containerization](#docker-and-containerization)
+- [API Documentation](#api-documentation)
 
-```js
-function processTransaction(transaction) {
-    return new Promise((resolve, reject) => {
-        console.log('Transaction processing started for:', transaction);
+## Tech Stack
 
-        // Simulate long running process
-        setTimeout(() => {
-            // After 30 seconds, we assume the transaction is processed successfully
-            console.log('transaction processed for:', transaction);
-            resolve(transaction);
-        }, 30000); // 30 seconds
-    });
-}
+- **Node.js**: Backend runtime environment.
+- **Fastify**: Web framework for building APIs.
+- **PostgreSQL**: Relational database.
+- **Prisma**: ORM for database management.
+- **Supabase**: Authentication service.
+- **Docker**: Containerization platform.
+- **Docker Compose**: Tool for defining and running multi-container Docker applications.
 
-// Example usage
-let transaction = { amount: 100, currency: 'USD' }; // Sample transaction input
-processTransaction(transaction)
-    .then((processedTransaction) => {
-        console.log('transaction processing completed for:', processedTransaction);
-    })
-    .catch((error) => {
-        console.error('transaction processing failed:', error);
-    });
+## Setup and Installation
+
+1. **Environment Variables**: Create a .env file in both account-manager and payment-manager directories with the following content:
+
+```bash
+SUPABASE_URL="yoursupabaseurl"
+SUPABASE_KEY="yoursupabasekey"
+DB_PASSWORD="yourdatabasepassword"
+DB_USERNAME="yourdatabaseusername"
+DB_NAME="yourdatabasename"
+DATABASE_URL="yourdatabaseurl"
 ```
 
-Features:
-- Users need to register/log in and then be able to call APIs.
-- APIs for 2 operations send/withdraw. Account statements will be updated after the transaction is successful.
-- APIs to retrieve all accounts and transactions per account of the user.
-- Write Swagger docs for implemented APIs (Optional)
-- Auto Debit/Recurring Payments: Users should be able to set up recurring payments. These payments will automatically be processed at specified intervals. (Optional)
+2. **Install dependencies**:
 
-### Tech-stack:
-- Recommend using authentication 3rd party: Supertokens, Supabase...
-- `NodeJs` for API server (`Fastify/Gin` framework is the best choices)
-- `PostgreSQL/MongoDB` for Database. Recommend using `Prisma` for ORM.
-- `Docker` for containerization. Recommend using `docker-compose` for running containers.
- 
-## Target:
-- Good document/README to describe your implementation.
-- Make sure app functionality works as expected. Run and test it well.
-- Containerized and run the app using Docker.
-- Using `docker-compose` or any automation script to run the app with single command is a plus.
-- Job schedulers utilization is a plus
+```bash
+npm install
+```
+
+3. **Setup Prisma**:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+## Database Schema
+
+The database schema is defined using Prisma ORM. Below is a simplified schema for reference:
+
+```prisma
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String?
+  accounts PaymentAccount[]
+}
+
+model PaymentAccount {
+  id       Int      @id @default(autoincrement())
+  type     String
+  userId   Int
+  user     User     @relation(fields: [userId], references: [id])
+  history  Transaction[]
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  toAddress String
+  currency  String
+  status    String
+  timestamp DateTime @default(now())
+  accountId   Int
+  account     PaymentAccount @relation(fields: [accountId], references: [id])
+}
+```
+
+## Authentication
+
+Authentication is handled using Supabase. Users can register and log in using the /register and /login endpoints. JWT tokens are used for protecting routes and ensuring secure access.
+
+## Transaction Processing
+
+Transactions are processed using a simulated function that introduces a delay to mimic real-world processing times. The processTransaction function updates account balances and logs the transaction upon successful completion.
+
+## Recurring Payments
+
+Recurring payments are implemented using a job scheduler (node-cron). Users can set up recurring payments that automatically execute at specified intervals.
+
+## Docker and Containerization
+
+The project is containerized using Docker. The docker-compose.yml file orchestrates the containers, allowing you to run the entire application with a single command.
+
+## API Documentation
+
+Swagger documentation is available at `/docs` of the project, providing an interactive interface to explore and test the APIs.
